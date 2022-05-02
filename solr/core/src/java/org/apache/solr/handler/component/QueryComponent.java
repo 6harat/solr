@@ -79,6 +79,7 @@ import org.apache.solr.search.CursorMark;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocList;
 import org.apache.solr.search.DocListAndSet;
+import org.apache.solr.search.DocSet;
 import org.apache.solr.search.DocSlice;
 import org.apache.solr.search.Grouping;
 import org.apache.solr.search.QParser;
@@ -94,6 +95,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SolrReturnFields;
 import org.apache.solr.search.SortSpec;
 import org.apache.solr.search.SortSpecParsing;
+import org.apache.solr.search.SortedIntDocSet;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.search.grouping.CommandHandler;
 import org.apache.solr.search.grouping.GroupingSpecification;
@@ -1454,16 +1456,14 @@ public class QueryComponent extends SearchComponent {
       }
     }
 
-    DocListAndSet res = new DocListAndSet();
-    res.docList = new DocSlice(0, docs, luceneIds, null, docs, 0, TotalHits.Relation.EQUAL_TO);
-    if (rb.isNeedDocSet()) {
-      // TODO: create a cache for this!
-      List<Query> queries = new ArrayList<>();
-      queries.add(rb.getQuery());
-      List<Query> filters = rb.getFilters();
-      if (filters != null) queries.addAll(filters);
-      res.docSet = searcher.getDocSet(queries);
-    }
+    int[] sortedLuceneIds = new int[docs];
+    System.arraycopy(luceneIds, 0, sortedLuceneIds, 0, docs);
+    Arrays.sort(sortedLuceneIds);
+    DocSet unfilteredDocSet = new SortedIntDocSet(sortedLuceneIds, docs);
+    SolrIndexSearcher.ProcessedFilter pfWithFilter = searcher.getProcessedFilter(unfilteredDocSet, rb.getFilters());
+    Query filterQuery = pfWithFilter.filter;
+    DocListAndSet res = searcher.getDocListAndSet(rb.getQuery(), filterQuery,
+            rb.getSortSpec().getSort(), rb.getSortSpec().getOffset(), rb.getSortSpec().getCount());
     rb.setResults(res);
 
     ResultContext ctx = new BasicResultContext(rb);
