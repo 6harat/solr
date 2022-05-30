@@ -49,8 +49,11 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.ephemeral.core.EphemeralCore;
 import org.apache.solr.core.SolrConfig.UpdateHandlerInfo;
 import org.apache.solr.core.SolrCore;
+import org.apache.solr.ephemeral.index.EphemeralIndexWriter;
+import org.apache.solr.ephemeral.update.EphemeralCoreState;
 import org.apache.solr.metrics.SolrMetricProducer;
 import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.LocalSolrQueryRequest;
@@ -80,6 +83,9 @@ public class DirectUpdateHandler2 extends UpdateHandler
   private static final int NO_FILE_SIZE_UPPER_BOUND_PLACEHOLDER = -1;
 
   protected final SolrCoreState solrCoreState;
+
+  protected final EphemeralCore ephemeralCore;
+  protected final EphemeralCoreState ephemeralCoreState;
 
   // stats
   LongAdder addCommands = new LongAdder();
@@ -118,6 +124,9 @@ public class DirectUpdateHandler2 extends UpdateHandler
     super(core);
 
     solrCoreState = core.getSolrCoreState();
+
+    ephemeralCore = new EphemeralCore();
+    ephemeralCoreState = ephemeralCore.getCoreState();
 
     UpdateHandlerInfo updateHandlerInfo = core.getSolrConfig().getUpdateHandlerInfo();
     int docsUpperBound = updateHandlerInfo.autoCommmitMaxDocs;
@@ -158,6 +167,9 @@ public class DirectUpdateHandler2 extends UpdateHandler
   public DirectUpdateHandler2(SolrCore core, UpdateHandler updateHandler) {
     super(core, updateHandler.getUpdateLog());
     solrCoreState = core.getSolrCoreState();
+
+    ephemeralCore = new EphemeralCore();
+    ephemeralCoreState = ephemeralCore.getCoreState();
 
     UpdateHandlerInfo updateHandlerInfo = core.getSolrConfig().getUpdateHandlerInfo();
     int docsUpperBound = updateHandlerInfo.autoCommmitMaxDocs;
@@ -355,21 +367,25 @@ public class DirectUpdateHandler2 extends UpdateHandler
         return 1;
       }
 
-      if (cmd.overwrite) {
-        // Check for delete by query commands newer (i.e. reordered). This
-        // should always be null on a leader
-        List<UpdateLog.DBQ> deletesAfter = null;
-        if (ulog != null && cmd.version > 0) {
-          deletesAfter = ulog.getDBQNewer(cmd.version);
-        }
-
-        if (deletesAfter != null) {
-          addAndDelete(cmd, deletesAfter);
-        } else {
-          doNormalUpdate(cmd);
-        }
+      if (cmd.isEphemeralFieldUpdate()) {
+        doEphemeralUpdate(cmd);
       } else {
-        allowDuplicateUpdate(cmd);
+        if (cmd.overwrite) {
+          // Check for delete by query commands newer (i.e. reordered). This
+          // should always be null on a leader
+          List<UpdateLog.DBQ> deletesAfter = null;
+          if (ulog != null && cmd.version > 0) {
+            deletesAfter = ulog.getDBQNewer(cmd.version);
+          }
+
+          if (deletesAfter != null) {
+            addAndDelete(cmd, deletesAfter);
+          } else {
+            doNormalUpdate(cmd);
+          }
+        } else {
+          allowDuplicateUpdate(cmd);
+        }
       }
 
       if ((cmd.getFlags() & UpdateCommand.IGNORE_AUTOCOMMIT) == 0) {
@@ -394,6 +410,12 @@ public class DirectUpdateHandler2 extends UpdateHandler
     }
 
     return rc;
+  }
+
+  private void doEphemeralUpdate(AddUpdateCommand cmd) throws IOException {
+    EphemeralIndexWriter ephemeralWriter = ephemeralCoreState.getIndexWriter(ephemeralCore);
+    List<IndexableField> fields = cmd.makeLuceneDocForInPlaceUpdate().getFields();
+    ephemeralWriter.updateValues(cmd.updateTerm, fields.toArray(new Field[fields.size()]));
   }
 
   private void allowDuplicateUpdate(AddUpdateCommand cmd) throws IOException {
