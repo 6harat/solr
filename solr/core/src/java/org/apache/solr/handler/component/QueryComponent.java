@@ -1382,9 +1382,12 @@ public class QueryComponent extends SearchComponent {
     System.arraycopy(luceneIds, 0, sortedLuceneIds, 0, docs);
     Arrays.sort(sortedLuceneIds);
     DocSet unfilteredDocSet = new SortedIntDocSet(sortedLuceneIds, docs);
-    SolrIndexSearcher.ProcessedFilter pfWithFilter = searcher.getProcessedFilter(unfilteredDocSet, rb.getFilters());
-    Query filterQuery = pfWithFilter.filter;
-    DocListAndSet res = searcher.getDocListAndSet(rb.getQuery(), filterQuery,
+    Query idsFilterQuery = unfilteredDocSet.makeQuery();
+    if (rb.getFilters() == null) {
+      rb.setFilters(new ArrayList<>(1));
+    }
+    rb.getFilters().add(idsFilterQuery);
+    DocListAndSet res = searcher.getDocListAndSet(rb.getQuery(), rb.getFilters(),
             rb.getSortSpec().getSort(), rb.getSortSpec().getOffset(), rb.getSortSpec().getCount());
     rb.setResults(res);
 
