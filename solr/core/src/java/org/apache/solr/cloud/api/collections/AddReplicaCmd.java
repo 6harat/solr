@@ -18,7 +18,7 @@
 package org.apache.solr.cloud.api.collections;
 
 import static org.apache.solr.cloud.api.collections.CollectionHandlingUtils.CREATE_NODE_SET;
-import static org.apache.solr.cloud.api.collections.CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE;
+//import static org.apache.solr.cloud.api.collections.CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE;
 import static org.apache.solr.common.cloud.ZkStateReader.COLLECTION_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.CORE_NAME_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.NRT_REPLICAS;
@@ -119,8 +119,8 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
     }
 
     boolean waitForFinalState = message.getBool(WAIT_FOR_FINAL_STATE, false);
-    boolean skipCreateReplicaInClusterState =
-        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
+//    boolean skipCreateReplicaInClusterState =
+//        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
     final String asyncId = message.getStr(ASYNC);
 
     String node = message.getStr(CoreAdminParams.NODE);
@@ -189,9 +189,12 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
         CollectionHandlingUtils.asyncRequestTracker(asyncId, ccc);
     for (CreateReplica createReplica : createReplicas) {
       assert createReplica.coreName != null;
+//      ModifiableSolrParams params =
+//          getReplicaParams(
+//              message, collectionName, coll, skipCreateReplicaInClusterState, createReplica);
       ModifiableSolrParams params =
-          getReplicaParams(
-              message, collectionName, coll, skipCreateReplicaInClusterState, createReplica);
+              getReplicaParams(
+                      message, collectionName, coll, createReplica);
       shardRequestTracker.sendShardRequest(createReplica.node, params, shardHandler);
     }
 
@@ -251,10 +254,10 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
       ZkNodeProps message,
       String collectionName,
       DocCollection coll,
-      boolean skipCreateReplicaInClusterState,
+//      boolean skipCreateReplicaInClusterState,
       CreateReplica createReplica)
       throws InterruptedException, KeeperException {
-    if (!skipCreateReplicaInClusterState) {
+//    if (!skipCreateReplicaInClusterState) {
       ZkNodeProps props =
           new ZkNodeProps(
               Overseer.QUEUE_OPERATION,
@@ -291,7 +294,7 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
               SolrException.ErrorCode.SERVER_ERROR, "Exception updating Overseer state queue", e);
         }
       }
-    }
+//    }
 
     ModifiableSolrParams params = new ModifiableSolrParams();
     params.set(
@@ -352,8 +355,8 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
       ClusterState clusterState,
       ZkNodeProps message,
       ReplicaPosition replicaPosition) {
-    boolean skipCreateReplicaInClusterState =
-        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
+//    boolean skipCreateReplicaInClusterState =
+//        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
 
     String collection = message.getStr(COLLECTION_PROP);
     String node = replicaPosition.node;
@@ -379,7 +382,7 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
     if (coreName == null) {
       coreName =
           Assign.buildSolrCoreName(cloudManager.getDistribStateManager(), coll, shard, replicaType);
-    } else if (!skipCreateReplicaInClusterState) {
+    } //else if (!skipCreateReplicaInClusterState) {
       // Validate that the core name is unique in that collection
       for (Slice slice : coll.getSlices()) {
         for (Replica replica : slice.getReplicas()) {
@@ -391,7 +394,7 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
           }
         }
       }
-    }
+//    }
     log.info("Returning CreateReplica command.");
     return new CreateReplica(collection, shard, node, replicaType, coreName, coreNodeName);
   }
@@ -404,8 +407,8 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
       EnumMap<Replica.Type, Integer> replicaTypeVsCount,
       CoreContainer coreContainer)
       throws IOException, InterruptedException {
-    boolean skipCreateReplicaInClusterState =
-        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
+//    boolean skipCreateReplicaInClusterState =
+//        message.getBool(SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, false);
     boolean skipNodeAssignment = message.getBool(CollectionAdminParams.SKIP_NODE_ASSIGNMENT, false);
     String sliceName = message.getStr(SHARD_ID_PROP);
     DocCollection collection = clusterState.getCollection(collectionName);
@@ -425,7 +428,8 @@ public class AddReplicaCmd implements CollApiCmds.CollectionApiCommand {
     }
 
     List<ReplicaPosition> positions = null;
-    if (!skipCreateReplicaInClusterState && !skipNodeAssignment) {
+    if (!skipNodeAssignment) {
+//    if (!skipCreateReplicaInClusterState && !skipNodeAssignment) {
 
       positions =
           Assign.getNodesForNewReplicas(

@@ -666,7 +666,7 @@ public class SplitShardCmd implements CollApiCmds.CollectionApiCommand {
         }
         // special flag param to instruct addReplica not to create the replica in cluster state
         // again
-        propMap.put(CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, "true");
+//        propMap.put(CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE, "true");
 
         propMap.put(CommonAdminParams.WAIT_FOR_FINAL_STATE, Boolean.toString(waitForFinalState));
 

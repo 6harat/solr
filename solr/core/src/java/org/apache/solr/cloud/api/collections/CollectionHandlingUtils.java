@@ -103,7 +103,7 @@ public class CollectionHandlingUtils {
 
   public static final String ONLY_ACTIVE_NODES = "onlyactivenodes";
 
-  static final String SKIP_CREATE_REPLICA_IN_CLUSTER_STATE = "skipCreateReplicaInClusterState";
+//  static final String SKIP_CREATE_REPLICA_IN_CLUSTER_STATE = "skipCreateReplicaInClusterState";
 
   // Immutable Maps are null-hostile, so build our own
   public static final Map<String, Object> COLLECTION_PROPS_AND_DEFAULTS =

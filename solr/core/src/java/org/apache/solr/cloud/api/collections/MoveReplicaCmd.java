@@ -17,7 +17,7 @@
 
 package org.apache.solr.cloud.api.collections;
 
-import static org.apache.solr.cloud.api.collections.CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE;
+//import static org.apache.solr.cloud.api.collections.CollectionHandlingUtils.SKIP_CREATE_REPLICA_IN_CLUSTER_STATE;
 import static org.apache.solr.common.cloud.ZkStateReader.COLLECTION_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.REPLICA_PROP;
 import static org.apache.solr.common.cloud.ZkStateReader.SHARD_ID_PROP;
@@ -194,9 +194,9 @@ public class MoveReplicaCmd implements CollApiCmds.CollectionApiCommand {
       int timeout,
       boolean waitForFinalState)
       throws Exception {
-    String skipCreateReplicaInClusterState = "true";
+//    String skipCreateReplicaInClusterState = "true";
     if (clusterState.getLiveNodes().contains(replica.getNodeName())) {
-      skipCreateReplicaInClusterState = "false";
+//      skipCreateReplicaInClusterState = "false";
       ZkNodeProps removeReplicasProps =
           new ZkNodeProps(
               COLLECTION_PROP, coll.getName(),
@@ -258,8 +258,8 @@ public class MoveReplicaCmd implements CollApiCmds.CollectionApiCommand {
             replica.getCoreName(),
             WAIT_FOR_FINAL_STATE,
             String.valueOf(waitForFinalState),
-            SKIP_CREATE_REPLICA_IN_CLUSTER_STATE,
-            skipCreateReplicaInClusterState,
+//            SKIP_CREATE_REPLICA_IN_CLUSTER_STATE,
+//            skipCreateReplicaInClusterState,
             CoreAdminParams.ULOG_DIR,
             ulogDir.substring(0, ulogDir.lastIndexOf(UpdateLog.TLOG_NAME)),
             CoreAdminParams.DATA_DIR,
