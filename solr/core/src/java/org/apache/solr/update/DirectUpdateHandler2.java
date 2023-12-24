@@ -51,6 +51,8 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.ephemeral.core.EphemeralCore;
 import org.apache.solr.core.SolrConfig.UpdateHandlerInfo;
 import org.apache.solr.core.SolrCore;
+import org.apache.solr.ephemeral.index.EphemeralIndexWriter;
+import org.apache.solr.ephemeral.update.EphemeralCoreState;
 import org.apache.solr.core.SolrInfoBean;
 import org.apache.solr.metrics.SolrDelegateRegistryMetricsContext;
 import org.apache.solr.metrics.SolrMetricManager;
