@@ -56,8 +56,6 @@ import org.apache.solr.ephemeral.update.EphemeralCoreState;
 import org.apache.solr.core.SolrInfoBean;
 import org.apache.solr.metrics.SolrDelegateRegistryMetricsContext;
 import org.apache.solr.metrics.SolrMetricManager;
-import org.apache.solr.ephemeral.index.EphemeralIndexWriter;
-import org.apache.solr.ephemeral.update.EphemeralCoreState;
 import org.apache.solr.metrics.SolrMetricProducer;
 import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.LocalSolrQueryRequest;

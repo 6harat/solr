@@ -1017,6 +1017,7 @@
   <!--
      <queryParser name="myparser" class="com.mycompany.MyQParserPlugin"/>
     -->
+  <queryParser enable="true" name="epq" class="org.apache.solr.search.ephemeral.EphemeralCoreJoinQParserPlugin"/>
 
   <!-- Function Parsers
 
